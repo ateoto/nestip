@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+import os
+import json
+
+import requests
+from boto.route53.connection import Route53Connection
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+PROJECT_ROOT = os.path.abspath(BASE_DIR)
+SECRETS = json.load(open(os.path.join(PROJECT_ROOT, 'secrets.json')))
+
+response = requests.get(SECRETS['endpoint'])
+ip_address = response.json()['ip']
+
+r53_con = Route53Connection(aws_access_key_id=SECRETS['aws_access_key_id'], aws_secret_access_key=SECRETS['aws_secret_access_key'])
+zone = r53_con.get_zone(SECRETS['aws_zone'])
+status = zone.update_a(name=SECRETS['a_name'], value=ip_address,ttl=300)
